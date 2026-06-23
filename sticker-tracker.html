@@ -145,6 +145,8 @@ body{
 .modal{width:min(560px,100%);max-height:82vh;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--panel) 0%,#131b2c 100%);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
 .modal h2{font-family:'Saira Condensed',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.03em;margin:0 0 4px;font-size:24px}
 .modal p{color:var(--muted);font-size:13px;margin:0 0 14px}
+.modal input{width:100%;padding:11px 14px;border-radius:11px;background:var(--slot);border:1px solid var(--line);color:var(--text);font-size:14px;font-family:inherit;margin-bottom:14px}
+.modal input:focus{outline:2px solid var(--gold-2);outline-offset:1px;border-color:transparent}
 .modal textarea{flex:1;min-height:220px;width:100%;resize:none;border-radius:12px;background:var(--slot);border:1px solid var(--line);color:var(--text);font-family:'Inter',monospace;font-size:13px;line-height:1.55;padding:14px}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
 .confirm{width:min(360px,100%);text-align:center;background:linear-gradient(180deg,var(--panel) 0%,#131b2c 100%);border:1px solid var(--line);border-radius:20px;padding:26px 24px 22px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
@@ -178,7 +180,7 @@ body{
     <header>
       <p class="eyebrow">Panini &middot; World Cup 2026</p>
       <h1 class="title">Sticker <em>Album</em> Tracker</h1>
-      <p class="sub">Filled squares are stickers you&rsquo;ve collected; empty ones are still needed. Saves automatically.</p>
+      <p class="sub">Filled squares are stickers you&rsquo;ve collected; empty ones are still needed. Saves automatically — synced across your devices.</p>
     </header>
 
     <section class="scoreboard" aria-label="Collection progress">
@@ -227,6 +229,18 @@ body{
 
 </div>
 
+<!-- Sync code modal -->
+<div class="scrim" id="sync-code-scrim" role="dialog" aria-modal="true" aria-labelledby="sync-code-title">
+  <div class="modal">
+    <h2 id="sync-code-title">Sync your collection</h2>
+    <p>Create a sync code to share your sticker data across devices. Anyone with this code can access your collection.</p>
+    <input type="text" id="sync-code-input" placeholder="Enter or create a code (letters & numbers)" maxlength="20" autocomplete="off" />
+    <div class="modal-actions">
+      <button class="btn primary" id="sync-code-confirm">Start syncing</button>
+    </div>
+  </div>
+</div>
+
 <!-- Needs list modal -->
 <div class="scrim" id="needs-scrim" role="dialog" aria-modal="true" aria-labelledby="needs-title">
   <div class="modal">
@@ -257,66 +271,69 @@ body{
 <canvas id="confetti"></canvas>
 <div class="toast" id="toast"></div>
 
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+
 <script>
 const PER_TEAM = 20;
 const STORAGE_KEY = 'wc26-panini-v2';
 
 const TEAMS = [
-  {code:'FWC', name:'FIFA World Cup', flag:'\u2B50\uFE0F', foil:true, start:0, grad:['#F7DD93','#C9972F'], need:[6,9,10,13,17]},
-  {code:'MEX', name:'Mexico', flag:'\uD83C\uDDF2\uD83C\uDDFD', grad:['#006847','#C8102E'], need:[2,3,4,7,10,12,13,16]},
-  {code:'RSA', name:'South Africa', flag:'\uD83C\uDDFF\uD83C\uDDE6', grad:['#007A4D','#FFB612','#DE3831'], need:[3,11,16,17]},
-  {code:'KOR', name:'South Korea', flag:'\uD83C\uDDF0\uD83C\uDDF7', grad:['#C60C30','#003478'], need:[11,15,18,20]},
-  {code:'CZE', name:'Czechia', flag:'\uD83C\uDDE8\uD83C\uDDFF', grad:['#11457E','#D7141A'], need:[5,9,11,12,15,20]},
-  {code:'CAN', name:'Canada', flag:'\uD83C\uDDE8\uD83C\uDDE6', grad:['#D80621','#A30717'], need:[6,10,12,13,15,18]},
-  {code:'BIH', name:'Bosnia & Herzegovina', flag:'\uD83C\uDDE7\uD83C\uDDE6', grad:['#002395','#FECB00'], need:[3,5,7,9,10,12,16,18]},
-  {code:'QAT', name:'Qatar', flag:'\uD83C\uDDF6\uD83C\uDDE6', grad:['#8A1538','#5C0E26'], need:[5,11]},
-  {code:'SUI', name:'Switzerland', flag:'\uD83C\uDDE8\uD83C\uDDED', grad:['#D52B1E','#9b0010'], need:[2,4,10,15,16,19]},
-  {code:'BRA', name:'Brazil', flag:'\uD83C\uDDE7\uD83C\uDDF7', grad:['#009C3B','#FFDF00','#002776'], need:[1,4,9,11,13,18]},
-  {code:'MAR', name:'Morocco', flag:'\uD83C\uDDF2\uD83C\uDDE6', grad:['#C1272D','#006233'], need:[5,6,9,10,11,13,14,18]},
-  {code:'HAI', name:'Haiti', flag:'\uD83C\uDDED\uD83C\uDDF9', grad:['#00209F','#D21034'], need:[2,3,4,7,8,10,12,14,15,16,19]},
-  {code:'SCO', name:'Scotland', flag:'\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC73\uDB40\uDC63\uDB40\uDC74\uDB40\uDC7F', grad:['#005EB8','#0a3a78'], need:[2,5,9,14,18]},
-  {code:'USA', name:'United States', flag:'\uD83C\uDDFA\uD83C\uDDF8', grad:['#B22234','#3C3B6E'], need:[4,8,9,15,18]},
-  {code:'PAR', name:'Paraguay', flag:'\uD83C\uDDF5\uD83C\uDDFE', grad:['#D52B1E','#0038A8'], need:[8,13,14,19,20]},
-  {code:'AUS', name:'Australia', flag:'\uD83C\uDDE6\uD83C\uDDFA', grad:['#012169','#E4002B'], need:[2,8,10,11,14,19]},
-  {code:'TUR', name:'Türkiye', flag:'\uD83C\uDDF9\uD83C\uDDF7', grad:['#E30A17','#990710'], need:[3,5,8,9,10]},
-  {code:'GER', name:'Germany', flag:'\uD83C\uDDE9\uD83C\uDDEA', grad:['#000000','#DD0000','#FFCE00'], need:[1,5,7,8,9,10,11,12,13,18,19]},
-  {code:'CUW', name:'Curaçao', flag:'\uD83C\uDDE8\uD83C\uDDFC', grad:['#002B7F','#F9E814'], need:[1,12,13,19]},
-  {code:'CIV', name:"Côte d'Ivoire", flag:'\uD83C\uDDE8\uD83C\uDDEE', grad:['#F77F00','#009E60'], need:[2,10,13,17,20]},
-  {code:'ECU', name:'Ecuador', flag:'\uD83C\uDDEA\uD83C\uDDE8', grad:['#FFDD00','#034EA2','#ED1C24'], need:[3,8,10,11]},
-  {code:'NED', name:'Netherlands', flag:'\uD83C\uDDF3\uD83C\uDDF1', grad:['#AE1C28','#21468B'], need:[10,11,19]},
-  {code:'JPN', name:'Japan', flag:'\uD83C\uDDEF\uD83C\uDDF5', grad:['#BC002D','#7d001e'], need:[1,4,12,15,18,19,20]},
-  {code:'SWE', name:'Sweden', flag:'\uD83C\uDDF8\uD83C\uDDEA', grad:['#006AA7','#FECC00'], need:[2,3,8,19]},
-  {code:'TUN', name:'Tunisia', flag:'\uD83C\uDDF9\uD83C\uDDF3', grad:['#E70013','#9c000d'], need:[2,3,5,7,10,17,19,20]},
-  {code:'BEL', name:'Belgium', flag:'\uD83C\uDDE7\uD83C\uDDEA', grad:['#000000','#FAE042','#ED2939'], need:[3,14,15,18]},
-  {code:'EGY', name:'Egypt', flag:'\uD83C\uDDEA\uD83C\uDDEC', grad:['#CE1126','#000000'], need:[1,2,5,6,7,12,13,14,16,17,20]},
-  {code:'IRN', name:'Iran', flag:'\uD83C\uDDEE\uD83C\uDDF7', grad:['#239F40','#DA0000'], need:[2,5,8,12,13,15]},
-  {code:'NZL', name:'New Zealand', flag:'\uD83C\uDDF3\uD83C\uDDFF', grad:['#00247D','#CC142B'], need:[3,8,9,19,20]},
-  {code:'ESP', name:'Spain', flag:'\uD83C\uDDEA\uD83C\uDDF8', grad:['#AA151B','#F1BF00'], need:[3,4,6,8,10,13,15,16,17]},
-  {code:'CPV', name:'Cape Verde', flag:'\uD83C\uDDE8\uD83C\uDDFB', grad:['#003893','#CF2027'], need:[2,18,19,20]},
-  {code:'KSA', name:'Saudi Arabia', flag:'\uD83C\uDDF8\uD83C\uDDE6', grad:['#006C35','#00401f'], need:[4,5,11,17]},
-  {code:'URU', name:'Uruguay', flag:'\uD83C\uDDFA\uD83C\uDDFE', grad:['#0038A8','#001E5E'], need:[3,9,10,13,20]},
-  {code:'FRA', name:'France', flag:'\uD83C\uDDEB\uD83C\uDDF7', grad:['#002395','#ED2939'], need:[5,6,8,12,14,15,16,17]},
-  {code:'SEN', name:'Senegal', flag:'\uD83C\uDDF8\uD83C\uDDF3', grad:['#00853F','#FDEF42','#E31B23'], need:[3,6,12,15,16]},
-  {code:'IRQ', name:'Iraq', flag:'\uD83C\uDDEE\uD83C\uDDF6', grad:['#CE1126','#000000'], need:[5,8,9,11,12,15,16,17,19]},
-  {code:'NOR', name:'Norway', flag:'\uD83C\uDDF3\uD83C\uDDF4', grad:['#BA0C2F','#00205B'], need:[4,5,6,11,18,20]},
-  {code:'ARG', name:'Argentina', flag:'\uD83C\uDDE6\uD83C\uDDF7', grad:['#74ACDF','#2a6fb0','#FCBF49'], need:[4,5,6,8]},
-  {code:'ALG', name:'Algeria', flag:'\uD83C\uDDE9\uD83C\uDDFF', grad:['#006233','#C8102E'], need:[1,7,9,12,14]},
-  {code:'AUT', name:'Austria', flag:'\uD83C\uDDE6\uD83C\uDDF9', grad:['#ED2939','#a3101f'], need:[6,8,17,18,19,20]},
-  {code:'JOR', name:'Jordan', flag:'\uD83C\uDDEF\uD83C\uDDF4', grad:['#007A3D','#CE1126','#000000'], need:[1,3,4,5,8,9,15,17,18]},
-  {code:'POR', name:'Portugal', flag:'\uD83C\uDDF5\uD83C\uDDF9', grad:['#006600','#FF0000'], need:[3,4,12]},
-  {code:'COD', name:'DR Congo', flag:'\uD83C\uDDE8\uD83C\uDDE9', grad:['#007FFF','#F7D618','#CE1021'], need:[4,7,8,9,11,12,13,15]},
-  {code:'UZB', name:'Uzbekistan', flag:'\uD83C\uDDFA\uD83C\uDDFF', grad:['#1EB53A','#0099B5','#CE1126'], need:[1,3,7,13,14,16,17,19]},
-  {code:'COL', name:'Colombia', flag:'\uD83C\uDDE8\uD83C\uDDF4', grad:['#FCD116','#003893','#CE1126'], need:[2,4,5,7,14,17]},
-  {code:'ENG', name:'England', flag:'\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC65\uDB40\uDC6E\uDB40\uDC67\uDB40\uDC7F', grad:['#E03A3E','#B11226'], need:[3,5,7,12,15,19]},
-  {code:'CRO', name:'Croatia', flag:'\uD83C\uDDED\uD83C\uDDF7', grad:['#FF0000','#0093DD','#171796'], need:[2,5,7,11,16,17,18,20]},
-  {code:'GHA', name:'Ghana', flag:'\uD83C\uDDEC\uD83C\uDDED', grad:['#006B3F','#FCD116','#CE1126'], need:[5,9,10,13,14]},
-  {code:'PAN', name:'Panama', flag:'\uD83C\uDDF5\uD83C\uDDE6', grad:['#005293','#DA121A'], need:[2,3,11,20]},
+  {code:'FWC', name:'FIFA World Cup', flag:'⭐️', foil:true, start:0, grad:['#F7DD93','#C9972F'], need:[6,9,10,13,17]},
+  {code:'MEX', name:'Mexico', flag:'🇲🇽', grad:['#006847','#C8102E'], need:[2,3,4,7,10,12,13,16]},
+  {code:'RSA', name:'South Africa', flag:'🇿🇦', grad:['#007A4D','#FFB612','#DE3831'], need:[3,11,16,17]},
+  {code:'KOR', name:'South Korea', flag:'🇰🇷', grad:['#C60C30','#003478'], need:[11,15,18,20]},
+  {code:'CZE', name:'Czechia', flag:'🇨🇿', grad:['#11457E','#D7141A'], need:[5,9,11,12,15,20]},
+  {code:'CAN', name:'Canada', flag:'🇨🇦', grad:['#D80621','#A30717'], need:[6,10,12,13,15,18]},
+  {code:'BIH', name:'Bosnia & Herzegovina', flag:'🇧🇦', grad:['#002395','#FECB00'], need:[3,5,7,9,10,12,16,18]},
+  {code:'QAT', name:'Qatar', flag:'🇶🇦', grad:['#8A1538','#5C0E26'], need:[5,11]},
+  {code:'SUI', name:'Switzerland', flag:'🇨🇭', grad:['#D52B1E','#9b0010'], need:[2,4,10,15,16,19]},
+  {code:'BRA', name:'Brazil', flag:'🇧🇷', grad:['#009C3B','#FFDF00','#002776'], need:[1,4,9,11,13,18]},
+  {code:'MAR', name:'Morocco', flag:'🇲🇦', grad:['#C1272D','#006233'], need:[5,6,9,10,11,13,14,18]},
+  {code:'HAI', name:'Haiti', flag:'🇭🇹', grad:['#00209F','#D21034'], need:[2,3,4,7,8,10,12,14,15,16,19]},
+  {code:'SCO', name:'Scotland', flag:'🏴󠁧󠁢󠁳󠁣󠁴󠁿', grad:['#005EB8','#0a3a78'], need:[2,5,9,14,18]},
+  {code:'USA', name:'United States', flag:'🇺🇸', grad:['#B22234','#3C3B6E'], need:[4,8,9,15,18]},
+  {code:'PAR', name:'Paraguay', flag:'🇵🇾', grad:['#D52B1E','#0038A8'], need:[8,13,14,19,20]},
+  {code:'AUS', name:'Australia', flag:'🇦🇺', grad:['#012169','#E4002B'], need:[2,8,10,11,14,19]},
+  {code:'TUR', name:'Türkiye', flag:'🇹🇷', grad:['#E30A17','#990710'], need:[3,5,8,9,10]},
+  {code:'GER', name:'Germany', flag:'🇩🇪', grad:['#000000','#DD0000','#FFCE00'], need:[1,5,7,8,9,10,11,12,13,18,19]},
+  {code:'CUW', name:'Curaçao', flag:'🇨🇼', grad:['#002B7F','#F9E814'], need:[1,12,13,19]},
+  {code:'CIV', name:"Côte d'Ivoire", flag:'🇨🇮', grad:['#F77F00','#009E60'], need:[2,10,13,17,20]},
+  {code:'ECU', name:'Ecuador', flag:'🇪🇨', grad:['#FFDD00','#034EA2','#ED1C24'], need:[3,8,10,11]},
+  {code:'NED', name:'Netherlands', flag:'🇳🇱', grad:['#AE1C28','#21468B'], need:[10,11,19]},
+  {code:'JPN', name:'Japan', flag:'🇯🇵', grad:['#BC002D','#7d001e'], need:[1,4,12,15,18,19,20]},
+  {code:'SWE', name:'Sweden', flag:'🇸🇪', grad:['#006AA7','#FECC00'], need:[2,3,8,19]},
+  {code:'TUN', name:'Tunisia', flag:'🇹🇳', grad:['#E70013','#9c000d'], need:[2,3,5,7,10,17,19,20]},
+  {code:'BEL', name:'Belgium', flag:'🇧🇪', grad:['#000000','#FAE042','#ED2939'], need:[3,14,15,18]},
+  {code:'EGY', name:'Egypt', flag:'🇪🇬', grad:['#CE1126','#000000'], need:[1,2,5,6,7,12,13,14,16,17,20]},
+  {code:'IRN', name:'Iran', flag:'🇮🇷', grad:['#239F40','#DA0000'], need:[2,5,8,12,13,15]},
+  {code:'NZL', name:'New Zealand', flag:'🇳🇿', grad:['#00247D','#CC142B'], need:[3,8,9,19,20]},
+  {code:'ESP', name:'Spain', flag:'🇪🇸', grad:['#AA151B','#F1BF00'], need:[3,4,6,8,10,13,15,16,17]},
+  {code:'CPV', name:'Cape Verde', flag:'🇨🇻', grad:['#003893','#CF2027'], need:[2,18,19,20]},
+  {code:'KSA', name:'Saudi Arabia', flag:'🇸🇦', grad:['#006C35','#00401f'], need:[4,5,11,17]},
+  {code:'URU', name:'Uruguay', flag:'🇺🇾', grad:['#0038A8','#001E5E'], need:[3,9,10,13,20]},
+  {code:'FRA', name:'France', flag:'🇫🇷', grad:['#002395','#ED2939'], need:[5,6,8,12,14,15,16,17]},
+  {code:'SEN', name:'Senegal', flag:'🇸🇳', grad:['#00853F','#FDEF42','#E31B23'], need:[3,6,12,15,16]},
+  {code:'IRQ', name:'Iraq', flag:'🇮🇶', grad:['#CE1126','#000000'], need:[5,8,9,11,12,15,16,17,19]},
+  {code:'NOR', name:'Norway', flag:'🇳🇴', grad:['#BA0C2F','#00205B'], need:[4,5,6,11,18,20]},
+  {code:'ARG', name:'Argentina', flag:'🇦🇷', grad:['#74ACDF','#2a6fb0','#FCBF49'], need:[4,5,6,8]},
+  {code:'ALG', name:'Algeria', flag:'🇩🇿', grad:['#006233','#C8102E'], need:[1,7,9,12,14]},
+  {code:'AUT', name:'Austria', flag:'🇦🇹', grad:['#ED2939','#a3101f'], need:[6,8,17,18,19,20]},
+  {code:'JOR', name:'Jordan', flag:'🇯🇴', grad:['#007A3D','#CE1126','#000000'], need:[1,3,4,5,8,9,15,17,18]},
+  {code:'POR', name:'Portugal', flag:'🇵🇹', grad:['#006600','#FF0000'], need:[3,4,12]},
+  {code:'COD', name:'DR Congo', flag:'🇨🇩', grad:['#007FFF','#F7D618','#CE1021'], need:[4,7,8,9,11,12,13,15]},
+  {code:'UZB', name:'Uzbekistan', flag:'🇺🇿', grad:['#1EB53A','#0099B5','#CE1126'], need:[1,3,7,13,14,16,17,19]},
+  {code:'COL', name:'Colombia', flag:'🇨🇴', grad:['#FCD116','#003893','#CE1126'], need:[2,4,5,7,14,17]},
+  {code:'ENG', name:'England', flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', grad:['#E03A3E','#B11226'], need:[3,5,7,12,15,19]},
+  {code:'CRO', name:'Croatia', flag:'🇭🇷', grad:['#FF0000','#0093DD','#171796'], need:[2,5,7,11,16,17,18,20]},
+  {code:'GHA', name:'Ghana', flag:'🇬🇭', grad:['#006B3F','#FCD116','#CE1126'], need:[5,9,10,13,14]},
+  {code:'PAN', name:'Panama', flag:'🇵🇦', grad:['#005293','#DA121A'], need:[2,3,11,20]},
 ];
 
 const TOTAL = TEAMS.length * PER_TEAM;
 const byCode = {}, indexOfCode = {};
 TEAMS.forEach((t,i)=>{
-  if(typeof t.start !== 'number') t.start = 1;   // FWC sets start:0; everyone else 1
+  if(typeof t.start !== 'number') t.start = 1;
   t.css = 'linear-gradient(160deg,' + t.grad.join(',') + ')';
   byCode[t.code] = t; indexOfCode[t.code] = i;
 });
@@ -329,8 +346,10 @@ let filterMode = 'all';
 let searchText = '';
 let saveTimer = null;
 let storageOK = true;
-let pending = null;       // {code,n} awaiting confirmation
-let currentCode = null;   // open nation, or null on album view
+let pending = null;
+let currentCode = null;
+let syncCode = null;
+let db = null;
 
 function seedFromNeeds(){
   const o = {};
@@ -340,17 +359,44 @@ function seedFromNeeds(){
 function serialise(){ const out={}; for(const c in owned) out[c]=[...owned[c]].sort((a,b)=>a-b); return out; }
 function deserialise(obj){ const o={}; for(const t of TEAMS) o[t.code]=new Set(Array.isArray(obj[t.code])?obj[t.code]:[]); return o; }
 
+async function loadFromFirestore(){
+  if(!syncCode || !db) return null;
+  try{
+    const docRef = firebase.firestore.doc(db, 'collections', syncCode);
+    const snap = await firebase.firestore.getDoc(docRef);
+    if(snap.exists()){ return snap.data().owned; }
+  }catch(e){}
+  return null;
+}
+
+async function saveToFirestore(){
+  if(!syncCode || !db) return;
+  try{
+    const docRef = firebase.firestore.doc(db, 'collections', syncCode);
+    await firebase.firestore.setDoc(docRef, {owned: serialise()}, {merge: true});
+  }catch(e){}
+}
+
 async function load(){
+  try{
+    const fsData = await loadFromFirestore();
+    if(fsData){ owned = deserialise(fsData); return; }
+  }catch(e){}
+
   try{ const r=localStorage.getItem(STORAGE_KEY); if(r){ owned=deserialise(JSON.parse(r)); return; } }catch(e){}
   owned=seedFromNeeds(); save();
 }
+
 function save(){
   if(saveTimer) clearTimeout(saveTimer);
-  saveTimer=setTimeout(()=>{ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(serialise())); }catch(e){ storageOK=false; } }, 180);
+  saveTimer=setTimeout(async ()=>{
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(serialise())); }catch(e){ storageOK=false; }
+    await saveToFirestore();
+  }, 180);
 }
+
 function have(code){ return owned[code] ? owned[code].size : 0; }
 
-/* ---------- Overall stats ---------- */
 function renderStats(){
   let h=0, done=0;
   for(const t of TEAMS){ const c=have(t.code); h+=c; if(c===PER_TEAM) done++; }
@@ -362,10 +408,9 @@ function renderStats(){
   document.getElementById('ov-need').textContent = TOTAL - h;
 }
 
-/* ---------- Album view ---------- */
 function matchesFilter(t){
   if(searchText){ const q=searchText.toLowerCase(); if(!(t.name.toLowerCase().includes(q)||t.code.toLowerCase().includes(q))) return false; }
-  if(filterMode==='need' && have(t.code)===PER_TEAM) return false;  // hide completed teams
+  if(filterMode==='need' && have(t.code)===PER_TEAM) return false;
   return true;
 }
 function miniHTML(t,n){
@@ -379,11 +424,11 @@ function ncardHTML(t){
   let cells, sum, aria;
   if(filterMode==='need'){
     const miss = numbers(t).filter(n=>!owned[t.code].has(n));
-    cells = miss.map(n=>'<span class="mini">'+label(t,n)+'</span>').join('');     // only the missing numbers
+    cells = miss.map(n=>'<span class="mini">'+label(t,n)+'</span>').join('');
     sum = '<span class="summary need">'+miss.length+'<small> needed</small></span>';
     aria = 'Open '+t.name+', '+miss.length+' stickers still needed';
   } else {
-    cells = numbers(t).map(n=>miniHTML(t,n)).join('');                            // full 20, collected vs needed
+    cells = numbers(t).map(n=>miniHTML(t,n)).join('');
     sum = done ? '<span class="badge">Done</span>' : '<span class="summary">'+c+'<small>/'+PER_TEAM+'</small></span>';
     aria = 'Open '+t.name+', '+c+' of '+PER_TEAM+' collected';
   }
@@ -400,11 +445,10 @@ function renderAlbum(){
   const list = TEAMS.filter(matchesFilter);
   const root = document.getElementById('teams');
   if(list.length){ root.innerHTML = list.map(ncardHTML).join(''); return; }
-  if(filterMode==='need' && !searchText) root.innerHTML = '<div class="empty">Nothing left to find &mdash; every sticker collected. \uD83C\uDFC6</div>';
+  if(filterMode==='need' && !searchText) root.innerHTML = '<div class="empty">Nothing left to find &mdash; every sticker collected. 🏆</div>';
   else root.innerHTML = '<div class="empty">No teams match your search. Clear it to see the whole album.</div>';
 }
 
-/* ---------- Nation view ---------- */
 function slotHTML(t,n){
   const hasIt = owned[t.code].has(n);
   const cls='slot'+(hasIt?' owned':'')+(hasIt&&t.foil?' foilink':'');
@@ -413,7 +457,7 @@ function slotHTML(t,n){
 }
 function remainingText(t){
   const miss = numbers(t).filter(n=>!owned[t.code].has(n)).map(n=>label(t,n));
-  if(!miss.length) return 'Complete \u2014 all 20 collected. \uD83C\uDFC6';
+  if(!miss.length) return 'Complete — all 20 collected. 🏆';
   return 'Still to find (<b>'+miss.length+'</b>): ' + miss.join(', ');
 }
 function updateNationHead(t){
@@ -427,7 +471,7 @@ function openNation(code){
   const t = byCode[code]; currentCode = code;
   document.getElementById('n-flag').textContent = t.flag;
   document.getElementById('n-name').textContent = t.name;
-  document.getElementById('n-code').textContent = t.code + ' \u00B7 ' + PER_TEAM + ' stickers';
+  document.getElementById('n-code').textContent = t.code + ' · ' + PER_TEAM + ' stickers';
   updateNationHead(t);
   document.getElementById('nation-slots').innerHTML = numbers(t).map(n=>slotHTML(t,n)).join('');
   const i=indexOfCode[code], N=TEAMS.length, prev=TEAMS[(i-1+N)%N], next=TEAMS[(i+1)%N];
@@ -448,7 +492,6 @@ function showAlbum(){
   renderAlbum();
 }
 
-/* ---------- History / routing ---------- */
 function pushNation(code){ openNation(code); history.pushState({view:'nation',code}, '', '#'+code); }
 function replaceNation(code){ openNation(code); history.replaceState({view:'nation',code}, '', '#'+code); }
 function onPop(e){
@@ -457,7 +500,6 @@ function onPop(e){
   else showAlbum();
 }
 
-/* ---------- Toggle / collect ---------- */
 function updateSummaries(code){ if(currentCode===code) updateNationHead(byCode[code]); }
 function setSlot(code,n,nowOwned,land){
   const t = byCode[code];
@@ -474,7 +516,6 @@ function setSlot(code,n,nowOwned,land){
 function collect(code,n){ owned[code].add(n); setSlot(code,n,true,true); confetti(byCode[code].grad); }
 function remove(code,n){ owned[code].delete(n); setSlot(code,n,false,false); }
 
-/* ---------- Confirm ---------- */
 function askConfirm(code,n){
   const t = byCode[code]; pending = {code,n};
   const chip = document.getElementById('c-chip');
@@ -482,23 +523,21 @@ function askConfirm(code,n){
   if(t.foil){ chip.style.color='#2C1F06'; chip.style.textShadow='none'; }
   else { chip.style.color='#fff'; chip.style.textShadow='0 1px 3px rgba(0,0,0,.55)'; }
   document.getElementById('c-flag').textContent = t.flag;
-  document.getElementById('c-team').textContent = t.name + ' \u00B7 No. ' + label(t,n);
+  document.getElementById('c-team').textContent = t.name + ' · No. ' + label(t,n);
   document.getElementById('confirm-scrim').classList.add('open');
   document.getElementById('c-confirm').focus();
 }
 
-/* ---------- Needs list ---------- */
 function needsListText(){
   const lines=[]; let total=0;
   for(const t of TEAMS){
     const miss = numbers(t).filter(n=>!owned[t.code].has(n)).map(n=>label(t,n));
-    if(miss.length){ lines.push(t.flag+' '+t.code+' \u2014 '+miss.join(', ')); total+=miss.length; }
+    if(miss.length){ lines.push(t.flag+' '+t.code+' — '+miss.join(', ')); total+=miss.length; }
   }
-  if(!lines.length) return 'Album complete \u2014 nothing left to collect. \uD83C\uDFC6';
-  return 'World Cup 2026 \u2014 still needed ('+total+' stickers)\n\n' + lines.join('\n');
+  if(!lines.length) return 'Album complete — nothing left to collect. 🏆';
+  return 'World Cup 2026 — still needed ('+total+' stickers)\n\n' + lines.join('\n');
 }
 
-/* ---------- Confetti ---------- */
 const cv = document.getElementById('confetti');
 const cxx = cv.getContext('2d');
 function confetti(colors){
@@ -520,7 +559,44 @@ function confetti(colors){
 }
 function showToast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),1900); }
 
-/* ---------- Wire up ---------- */
+async function setupSync(){
+  syncCode = localStorage.getItem('wc26-syncCode');
+  const firebaseConfig = {
+    apiKey: "AIzaSyCbv2kYZgOkiMKCXl8dHqVekEeY88R0XMo",
+    authDomain: "sticker-tracker-9cae1.firebaseapp.com",
+    projectId: "sticker-tracker-9cae1",
+    storageBucket: "sticker-tracker-9cae1.firebasestorage.app",
+    messagingSenderId: "833558967042",
+    appId: "1:833558967042:web:2685531ddb510ef081c81b"
+  };
+  const app = firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore(app);
+
+  if(!syncCode){
+    const scrim = document.getElementById('sync-code-scrim');
+    const input = document.getElementById('sync-code-input');
+    const btn = document.getElementById('sync-code-confirm');
+
+    return new Promise(resolve => {
+      btn.onclick = () => {
+        const code = input.value.trim();
+        if(code && code.length >= 3){
+          syncCode = code;
+          localStorage.setItem('wc26-syncCode', syncCode);
+          scrim.classList.remove('open');
+          resolve();
+        } else {
+          showToast('Code must be 3+ characters');
+        }
+      };
+      input.addEventListener('keydown', e => {
+        if(e.key === 'Enter') btn.click();
+      });
+      scrim.classList.add('open');
+    });
+  }
+}
+
 function init(){
   document.getElementById('teams').addEventListener('click',(e)=>{ const card=e.target.closest('.ncard'); if(card) pushNation(card.dataset.code); });
 
@@ -573,16 +649,15 @@ function init(){
 
   window.addEventListener('popstate', onPop);
 
-  // Initial route: base = album, optional deep-link via #CODE
   history.replaceState({view:'album'}, '', location.pathname + location.search);
   const hash = (location.hash || '').replace('#','').toUpperCase();
   if(byCode[hash]){ showAlbum(); pushNation(hash); }
   else showAlbum();
 
-  if(!storageOK) showToast('Heads up: progress can\u2019t be saved here');
+  if(!storageOK) showToast('Heads up: progress can’t be saved here');
 }
 
-load().then(init);
+setupSync().then(() => load().then(init));
 </script>
 </body>
 </html>
