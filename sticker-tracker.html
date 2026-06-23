@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>World Cup 2026 Sticker Album Tracker</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --ink:#0E1524; --ink-2:#0A111E; --panel:#172033; --panel-2:#1E2940;
+  --line:#2A3550; --slot:#101a2c; --slot-line:#33405e;
+  --gold-1:#F7DD93; --gold-2:#C9972F; --gold-ink:#2C1F06;
+  --green:#39C68C; --text:#EEF1F7; --muted:#8A95AC; --muted-2:#5E6A83;
+  --danger:#E5704B; --radius:16px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:
+    radial-gradient(1200px 600px at 50% -200px, #1a2740 0%, rgba(26,39,64,0) 60%),
+    linear-gradient(180deg, var(--ink) 0%, var(--ink-2) 100%);
+  background-attachment:fixed; color:var(--text);
+  font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased; min-height:100vh;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 96px}
+.view[hidden]{display:none}
+
+/* ---------- Header ---------- */
+.eyebrow{font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.28em;text-transform:uppercase;font-size:12px;color:var(--gold-1);opacity:.9;margin:0 0 6px}
+.title{font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:clamp(34px,6vw,58px);line-height:.95;letter-spacing:.01em;margin:0;text-transform:uppercase}
+.title em{font-style:normal;color:var(--gold-1)}
+.sub{color:var(--muted);margin:8px 0 0;font-size:15px}
+
+/* ---------- Top progress ---------- */
+.scoreboard{margin-top:24px;background:linear-gradient(180deg,var(--panel) 0%,#131b2c 100%);border:1px solid var(--line);border-radius:var(--radius);padding:22px 22px 20px;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:18px}
+.stat .big{font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:clamp(30px,5vw,46px);line-height:1}
+.stat .big small{font-size:.5em;color:var(--muted);font-weight:600}
+.stat .lab{color:var(--muted);font-size:13px;margin-top:4px;letter-spacing:.02em}
+.stat.accent .big{color:var(--gold-1)}
+.stat.green .big{color:var(--green)}
+.bar{height:10px;border-radius:999px;background:#0c1421;border:1px solid var(--slot-line);overflow:hidden;margin-top:14px}
+.bar > i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--gold-2),var(--gold-1));box-shadow:0 0 12px rgba(247,221,147,.45);transition:width .4s ease}
+.scoreboard .stat:first-child{grid-column:1 / -1}
+
+/* ---------- Controls ---------- */
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:22px 0 6px}
+.search{flex:1 1 220px;min-width:180px;position:relative}
+.search input{width:100%;padding:11px 14px 11px 38px;border-radius:11px;background:var(--panel);border:1px solid var(--line);color:var(--text);font-size:14px;font-family:inherit}
+.search input::placeholder{color:var(--muted-2)}
+.search input:focus{outline:2px solid var(--gold-2);outline-offset:1px;border-color:transparent}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted-2)}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:3px}
+.seg button{appearance:none;border:0;background:transparent;color:var(--muted);font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:13px;padding:8px 14px;border-radius:8px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--text);box-shadow:inset 0 0 0 1px var(--slot-line)}
+.btn{appearance:none;cursor:pointer;border-radius:11px;padding:10px 15px;font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:13px;border:1px solid var(--line);background:var(--panel);color:var(--text)}
+.btn:hover{border-color:var(--slot-line)}
+.btn.ghost{color:var(--muted)}
+.btn.primary{border-color:transparent;color:var(--gold-ink);background:linear-gradient(160deg,var(--gold-1),var(--gold-2));font-size:14px}
+.btn:focus-visible,.seg button:focus-visible,.slot:focus-visible,.ncard:focus-visible,.back:focus-visible,.navbtn:focus-visible{outline:2px solid var(--gold-1);outline-offset:2px}
+.hint{color:var(--muted-2);font-size:13px;margin:10px 2px 22px}
+
+/* ---------- Album overview: nation cards ---------- */
+.teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.ncard{
+  text-align:left;cursor:pointer;color:var(--text);width:100%;
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:11px 12px;
+  background:linear-gradient(180deg,var(--panel) 0%,#141d2e 100%);
+  border:1px solid var(--line);border-radius:14px;padding:14px 15px 15px;font-family:inherit;
+  transition:transform .12s ease, border-color .15s ease;
+}
+.ncard:hover{transform:translateY(-2px);border-color:var(--slot-line)}
+.ncard.foil{border-color:#5a4a22;box-shadow:0 0 0 1px rgba(247,221,147,.12)}
+.ncard.done{border-color:rgba(57,198,140,.4)}
+.ncard .flag{font-size:26px;line-height:1;width:32px;text-align:center}
+.ncard .ninfo{min-width:0}
+.cname{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:18px;line-height:1.05;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ccode{color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.12em}
+.nright{display:flex;align-items:center;gap:8px}
+.summary{font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:17px}
+.summary small{color:var(--muted);font-weight:600;font-size:.62em}
+.summary.need{color:var(--gold-1)}
+.badge{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);border:1px solid rgba(57,198,140,.4);border-radius:999px;padding:3px 9px}
+.chev{color:var(--muted-2);flex:none}
+
+/* mini sticker grid on the card (display only) */
+.mini-grid{grid-column:1 / -1;display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-top:3px}
+.mini{position:relative;aspect-ratio:1/1;border-radius:5px;display:flex;align-items:center;justify-content:center;
+  font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:10px;overflow:hidden;
+  border:1.25px dashed var(--slot-line);background:var(--slot);color:var(--muted-2)}
+.mini.owned{border-style:solid;border-color:transparent;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.mini.owned::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.25),rgba(255,255,255,0) 55%);pointer-events:none}
+.mini.foilink{color:var(--gold-ink);text-shadow:none}
+.empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:48px 0;font-size:15px}
+
+/* ---------- Nation view ---------- */
+.back{appearance:none;cursor:pointer;background:transparent;border:0;color:var(--muted);font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:14px;padding:6px 2px;display:inline-flex;align-items:center;gap:7px}
+.back:hover{color:var(--text)}
+.nation-head{display:flex;align-items:center;gap:16px;margin:18px 0 4px}
+.bigflag{font-size:54px;line-height:1}
+.nation-head .txt{flex:1;min-width:0}
+.bigname{font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:clamp(28px,5vw,42px);line-height:1;text-transform:uppercase;letter-spacing:.01em}
+.bigcode{color:var(--muted);font-size:13px;font-weight:600;letter-spacing:.14em;margin-top:4px}
+.nation-count{font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:clamp(26px,5vw,38px)}
+.nation-count small{color:var(--muted);font-weight:600;font-size:.55em}
+.bigbar{height:10px;border-radius:999px;background:#0c1421;border:1px solid var(--slot-line);overflow:hidden;margin:14px 0 12px}
+.bigbar > i{display:block;height:100%;transition:width .4s ease}
+.remaining{color:var(--muted);font-size:14px;margin:0 0 22px;min-height:20px}
+.remaining b{color:var(--text);font-weight:600}
+
+.slots{display:grid;gap:10px;max-width:580px;margin:0 auto}
+.slots.big{grid-template-columns:repeat(5,1fr)}
+@media(min-width:620px){.slots.big{grid-template-columns:repeat(10,1fr)}}
+
+.slot{
+  position:relative;aspect-ratio:1/1;border-radius:11px;cursor:pointer;
+  font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:18px;
+  display:flex;align-items:center;justify-content:center;
+  border:1.5px dashed var(--slot-line);background:var(--slot);color:var(--muted-2);
+  transition:transform .08s ease, color .15s ease, border-color .15s ease; overflow:hidden;
+}
+.slot:hover{border-color:var(--gold-2);color:var(--muted)}
+.slot:active{transform:scale(.92)}
+.slot.owned{border-style:solid;border-color:transparent;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.55);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 1px 5px rgba(0,0,0,.3)}
+.slot.owned::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,0) 50%);pointer-events:none}
+.slot.owned::after{content:"";position:absolute;top:-60%;left:-70%;width:55%;height:220%;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.8),rgba(255,255,255,0));transform:rotate(20deg);animation:sweep 3.6s ease-in-out infinite;pointer-events:none}
+.slot.owned.foilink{color:var(--gold-ink);text-shadow:none}
+@keyframes sweep{0%{left:-70%}55%{left:150%}100%{left:150%}}
+.slot.land{animation:land .42s cubic-bezier(.2,1.4,.4,1)}
+@keyframes land{0%{transform:scale(.2) rotate(-12deg);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+.nation-nav{display:flex;justify-content:space-between;gap:10px;max-width:580px;margin:26px auto 0}
+.navbtn{flex:1;appearance:none;cursor:pointer;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--text);padding:11px 14px;font-family:inherit;font-size:13px;display:flex;align-items:center;gap:9px;min-width:0}
+.navbtn:hover{border-color:var(--slot-line)}
+.navbtn.next{justify-content:flex-end;text-align:right}
+.navbtn .nf{font-size:20px;flex:none}
+.navbtn .nl{min-width:0}
+.navbtn .nl small{display:block;color:var(--muted-2);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.navbtn .nl span{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+
+/* ---------- Modals ---------- */
+.scrim{position:fixed;inset:0;background:rgba(6,10,18,.7);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+.scrim.open{display:flex}
+.modal{width:min(560px,100%);max-height:82vh;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--panel) 0%,#131b2c 100%);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.modal h2{font-family:'Saira Condensed',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.03em;margin:0 0 4px;font-size:24px}
+.modal p{color:var(--muted);font-size:13px;margin:0 0 14px}
+.modal textarea{flex:1;min-height:220px;width:100%;resize:none;border-radius:12px;background:var(--slot);border:1px solid var(--line);color:var(--text);font-family:'Inter',monospace;font-size:13px;line-height:1.55;padding:14px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+.confirm{width:min(360px,100%);text-align:center;background:linear-gradient(180deg,var(--panel) 0%,#131b2c 100%);border:1px solid var(--line);border-radius:20px;padding:26px 24px 22px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.confirm .chip{width:96px;height:96px;margin:0 auto 16px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:38px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.55);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 8px 26px rgba(0,0,0,.4)}
+.confirm .cflag{font-size:30px;line-height:1}
+.confirm .cteam{font-family:'Saira Condensed',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-size:20px;margin:6px 0 2px}
+.confirm .cq{color:var(--muted);font-size:14px;margin:0 0 20px}
+.confirm .modal-actions{justify-content:center}
+
+/* ---------- Toast & confetti ---------- */
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:#0b1322;border:1px solid var(--slot-line);color:var(--text);padding:11px 18px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;z-index:90}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:80}
+
+@media (max-width:560px){
+  .scoreboard{grid-template-columns:1fr 1fr}
+  .scoreboard .stat:first-child{grid-column:1 / -1}
+}
+@media (prefers-reduced-motion:reduce){
+  .slot.owned::after{animation:none;display:none}
+  .slot.land{animation:none}
+  *{transition:none !important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= ALBUM VIEW ================= -->
+  <div id="view-album" class="view">
+    <header>
+      <p class="eyebrow">Panini &middot; World Cup 2026</p>
+      <h1 class="title">Sticker <em>Album</em> Tracker</h1>
+      <p class="sub">Filled squares are stickers you&rsquo;ve collected; empty ones are still needed. Saves automatically.</p>
+    </header>
+
+    <section class="scoreboard" aria-label="Collection progress">
+      <div class="stat accent">
+        <div class="big" id="ov-have">0<small> / 0 collected</small></div>
+        <div class="bar"><i id="ov-bar" style="width:0%"></i></div>
+        <div class="lab" id="ov-pct">0% of the album complete</div>
+      </div>
+      <div class="stat green"><div class="big" id="ov-teams">0<small>/49</small></div><div class="lab">teams complete</div></div>
+      <div class="stat"><div class="big" id="ov-need">0</div><div class="lab">stickers still needed</div></div>
+    </section>
+
+    <div class="controls">
+      <label class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="search" type="search" placeholder="Search teams" autocomplete="off" />
+      </label>
+      <div class="seg" role="group" aria-label="Filter teams">
+        <button id="f-all" aria-pressed="true">All teams</button>
+        <button id="f-need" aria-pressed="false">Still need</button>
+      </div>
+      <button class="btn" id="open-needs">Needs list</button>
+      <button class="btn ghost" id="reset">Reset</button>
+    </div>
+    <p class="hint" id="hint">Tap a nation to open its page and add stickers.</p>
+
+    <main class="teams" id="teams"></main>
+  </div>
+
+  <!-- ================= NATION VIEW ================= -->
+  <div id="view-nation" class="view" hidden>
+    <button class="back" id="back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 5l-7 7 7 7"/></svg> All teams</button>
+    <div class="nation-head">
+      <span class="bigflag" id="n-flag"></span>
+      <div class="txt"><div class="bigname" id="n-name"></div><div class="bigcode" id="n-code"></div></div>
+      <div class="nation-count" id="n-count">0<small>/20</small></div>
+    </div>
+    <div class="bigbar"><i id="n-bar" style="width:0%"></i></div>
+    <p class="remaining" id="n-remaining"></p>
+    <div class="slots big" id="nation-slots"></div>
+    <div class="nation-nav">
+      <button class="navbtn prev" id="prev"><span class="nf" id="prev-f"></span><span class="nl"><small>Previous</small><span id="prev-n"></span></span></button>
+      <button class="navbtn next" id="next"><span class="nl"><small>Next</small><span id="next-n"></span></span><span class="nf" id="next-f"></span></button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Needs list modal -->
+<div class="scrim" id="needs-scrim" role="dialog" aria-modal="true" aria-labelledby="needs-title">
+  <div class="modal">
+    <h2 id="needs-title">Still needed</h2>
+    <p>Every sticker you&rsquo;re missing, grouped by team. Share it to swap doubles with other collectors.</p>
+    <textarea id="needs-text" readonly></textarea>
+    <div class="modal-actions">
+      <button class="btn ghost" id="needs-close">Close</button>
+      <button class="btn" id="needs-copy">Copy list</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm collect -->
+<div class="scrim" id="confirm-scrim" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+  <div class="confirm">
+    <div class="chip" id="c-chip">0</div>
+    <div class="cflag" id="c-flag"></div>
+    <div class="cteam" id="c-team"></div>
+    <p class="cq" id="confirm-title">Add this sticker to your album?</p>
+    <div class="modal-actions">
+      <button class="btn ghost" id="c-cancel">Not yet</button>
+      <button class="btn primary" id="c-confirm">Stick it in</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+<div class="toast" id="toast"></div>
+
+<script>
+const PER_TEAM = 20;
+const STORAGE_KEY = 'wc26-panini-v2';
+
+const TEAMS = [
+  {code:'FWC', name:'FIFA World Cup', flag:'\u2B50\uFE0F', foil:true, start:0, grad:['#F7DD93','#C9972F'], need:[6,9,10,13,17]},
+  {code:'MEX', name:'Mexico', flag:'\uD83C\uDDF2\uD83C\uDDFD', grad:['#006847','#C8102E'], need:[2,3,4,7,10,12,13,16]},
+  {code:'RSA', name:'South Africa', flag:'\uD83C\uDDFF\uD83C\uDDE6', grad:['#007A4D','#FFB612','#DE3831'], need:[3,11,16,17]},
+  {code:'KOR', name:'South Korea', flag:'\uD83C\uDDF0\uD83C\uDDF7', grad:['#C60C30','#003478'], need:[11,15,18,20]},
+  {code:'CZE', name:'Czechia', flag:'\uD83C\uDDE8\uD83C\uDDFF', grad:['#11457E','#D7141A'], need:[5,9,11,12,15,20]},
+  {code:'CAN', name:'Canada', flag:'\uD83C\uDDE8\uD83C\uDDE6', grad:['#D80621','#A30717'], need:[6,10,12,13,15,18]},
+  {code:'BIH', name:'Bosnia & Herzegovina', flag:'\uD83C\uDDE7\uD83C\uDDE6', grad:['#002395','#FECB00'], need:[3,5,7,9,10,12,16,18]},
+  {code:'QAT', name:'Qatar', flag:'\uD83C\uDDF6\uD83C\uDDE6', grad:['#8A1538','#5C0E26'], need:[5,11]},
+  {code:'SUI', name:'Switzerland', flag:'\uD83C\uDDE8\uD83C\uDDED', grad:['#D52B1E','#9b0010'], need:[2,4,10,15,16,19]},
+  {code:'BRA', name:'Brazil', flag:'\uD83C\uDDE7\uD83C\uDDF7', grad:['#009C3B','#FFDF00','#002776'], need:[1,4,9,11,13,18]},
+  {code:'MAR', name:'Morocco', flag:'\uD83C\uDDF2\uD83C\uDDE6', grad:['#C1272D','#006233'], need:[5,6,9,10,11,13,14,18]},
+  {code:'HAI', name:'Haiti', flag:'\uD83C\uDDED\uD83C\uDDF9', grad:['#00209F','#D21034'], need:[2,3,4,7,8,10,12,14,15,16,19]},
+  {code:'SCO', name:'Scotland', flag:'\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC73\uDB40\uDC63\uDB40\uDC74\uDB40\uDC7F', grad:['#005EB8','#0a3a78'], need:[2,5,9,14,18]},
+  {code:'USA', name:'United States', flag:'\uD83C\uDDFA\uD83C\uDDF8', grad:['#B22234','#3C3B6E'], need:[4,8,9,15,18]},
+  {code:'PAR', name:'Paraguay', flag:'\uD83C\uDDF5\uD83C\uDDFE', grad:['#D52B1E','#0038A8'], need:[8,13,14,19,20]},
+  {code:'AUS', name:'Australia', flag:'\uD83C\uDDE6\uD83C\uDDFA', grad:['#012169','#E4002B'], need:[2,8,10,11,14,19]},
+  {code:'TUR', name:'Türkiye', flag:'\uD83C\uDDF9\uD83C\uDDF7', grad:['#E30A17','#990710'], need:[3,5,8,9,10]},
+  {code:'GER', name:'Germany', flag:'\uD83C\uDDE9\uD83C\uDDEA', grad:['#000000','#DD0000','#FFCE00'], need:[1,5,7,8,9,10,11,12,13,18,19]},
+  {code:'CUW', name:'Curaçao', flag:'\uD83C\uDDE8\uD83C\uDDFC', grad:['#002B7F','#F9E814'], need:[1,12,13,19]},
+  {code:'CIV', name:"Côte d'Ivoire", flag:'\uD83C\uDDE8\uD83C\uDDEE', grad:['#F77F00','#009E60'], need:[2,10,13,17,20]},
+  {code:'ECU', name:'Ecuador', flag:'\uD83C\uDDEA\uD83C\uDDE8', grad:['#FFDD00','#034EA2','#ED1C24'], need:[3,8,10,11]},
+  {code:'NED', name:'Netherlands', flag:'\uD83C\uDDF3\uD83C\uDDF1', grad:['#AE1C28','#21468B'], need:[10,11,19]},
+  {code:'JPN', name:'Japan', flag:'\uD83C\uDDEF\uD83C\uDDF5', grad:['#BC002D','#7d001e'], need:[1,4,12,15,18,19,20]},
+  {code:'SWE', name:'Sweden', flag:'\uD83C\uDDF8\uD83C\uDDEA', grad:['#006AA7','#FECC00'], need:[2,3,8,19]},
+  {code:'TUN', name:'Tunisia', flag:'\uD83C\uDDF9\uD83C\uDDF3', grad:['#E70013','#9c000d'], need:[2,3,5,7,10,17,19,20]},
+  {code:'BEL', name:'Belgium', flag:'\uD83C\uDDE7\uD83C\uDDEA', grad:['#000000','#FAE042','#ED2939'], need:[3,14,15,18]},
+  {code:'EGY', name:'Egypt', flag:'\uD83C\uDDEA\uD83C\uDDEC', grad:['#CE1126','#000000'], need:[1,2,5,6,7,12,13,14,16,17,20]},
+  {code:'IRN', name:'Iran', flag:'\uD83C\uDDEE\uD83C\uDDF7', grad:['#239F40','#DA0000'], need:[2,5,8,12,13,15]},
+  {code:'NZL', name:'New Zealand', flag:'\uD83C\uDDF3\uD83C\uDDFF', grad:['#00247D','#CC142B'], need:[3,8,9,19,20]},
+  {code:'ESP', name:'Spain', flag:'\uD83C\uDDEA\uD83C\uDDF8', grad:['#AA151B','#F1BF00'], need:[3,4,6,8,10,13,15,16,17]},
+  {code:'CPV', name:'Cape Verde', flag:'\uD83C\uDDE8\uD83C\uDDFB', grad:['#003893','#CF2027'], need:[2,18,19,20]},
+  {code:'KSA', name:'Saudi Arabia', flag:'\uD83C\uDDF8\uD83C\uDDE6', grad:['#006C35','#00401f'], need:[4,5,11,17]},
+  {code:'URU', name:'Uruguay', flag:'\uD83C\uDDFA\uD83C\uDDFE', grad:['#0038A8','#001E5E'], need:[3,9,10,13,20]},
+  {code:'FRA', name:'France', flag:'\uD83C\uDDEB\uD83C\uDDF7', grad:['#002395','#ED2939'], need:[5,6,8,12,14,15,16,17]},
+  {code:'SEN', name:'Senegal', flag:'\uD83C\uDDF8\uD83C\uDDF3', grad:['#00853F','#FDEF42','#E31B23'], need:[3,6,12,15,16]},
+  {code:'IRQ', name:'Iraq', flag:'\uD83C\uDDEE\uD83C\uDDF6', grad:['#CE1126','#000000'], need:[5,8,9,11,12,15,16,17,19]},
+  {code:'NOR', name:'Norway', flag:'\uD83C\uDDF3\uD83C\uDDF4', grad:['#BA0C2F','#00205B'], need:[4,5,6,11,18,20]},
+  {code:'ARG', name:'Argentina', flag:'\uD83C\uDDE6\uD83C\uDDF7', grad:['#74ACDF','#2a6fb0','#FCBF49'], need:[4,5,6,8]},
+  {code:'ALG', name:'Algeria', flag:'\uD83C\uDDE9\uD83C\uDDFF', grad:['#006233','#C8102E'], need:[1,7,9,12,14]},
+  {code:'AUT', name:'Austria', flag:'\uD83C\uDDE6\uD83C\uDDF9', grad:['#ED2939','#a3101f'], need:[6,8,17,18,19,20]},
+  {code:'JOR', name:'Jordan', flag:'\uD83C\uDDEF\uD83C\uDDF4', grad:['#007A3D','#CE1126','#000000'], need:[1,3,4,5,8,9,15,17,18]},
+  {code:'POR', name:'Portugal', flag:'\uD83C\uDDF5\uD83C\uDDF9', grad:['#006600','#FF0000'], need:[3,4,12]},
+  {code:'COD', name:'DR Congo', flag:'\uD83C\uDDE8\uD83C\uDDE9', grad:['#007FFF','#F7D618','#CE1021'], need:[4,7,8,9,11,12,13,15]},
+  {code:'UZB', name:'Uzbekistan', flag:'\uD83C\uDDFA\uD83C\uDDFF', grad:['#1EB53A','#0099B5','#CE1126'], need:[1,3,7,13,14,16,17,19]},
+  {code:'COL', name:'Colombia', flag:'\uD83C\uDDE8\uD83C\uDDF4', grad:['#FCD116','#003893','#CE1126'], need:[2,4,5,7,14,17]},
+  {code:'ENG', name:'England', flag:'\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC65\uDB40\uDC6E\uDB40\uDC67\uDB40\uDC7F', grad:['#E03A3E','#B11226'], need:[3,5,7,12,15,19]},
+  {code:'CRO', name:'Croatia', flag:'\uD83C\uDDED\uD83C\uDDF7', grad:['#FF0000','#0093DD','#171796'], need:[2,5,7,11,16,17,18,20]},
+  {code:'GHA', name:'Ghana', flag:'\uD83C\uDDEC\uD83C\uDDED', grad:['#006B3F','#FCD116','#CE1126'], need:[5,9,10,13,14]},
+  {code:'PAN', name:'Panama', flag:'\uD83C\uDDF5\uD83C\uDDE6', grad:['#005293','#DA121A'], need:[2,3,11,20]},
+];
+
+const TOTAL = TEAMS.length * PER_TEAM;
+const byCode = {}, indexOfCode = {};
+TEAMS.forEach((t,i)=>{
+  if(typeof t.start !== 'number') t.start = 1;   // FWC sets start:0; everyone else 1
+  t.css = 'linear-gradient(160deg,' + t.grad.join(',') + ')';
+  byCode[t.code] = t; indexOfCode[t.code] = i;
+});
+
+function numbers(t){ const a=[]; for(let i=0;i<PER_TEAM;i++) a.push(t.start+i); return a; }
+function label(t,n){ return t.code==='FWC' ? String(n).padStart(2,'0') : String(n); }
+
+let owned = {};
+let filterMode = 'all';
+let searchText = '';
+let saveTimer = null;
+let storageOK = true;
+let pending = null;       // {code,n} awaiting confirmation
+let currentCode = null;   // open nation, or null on album view
+
+function seedFromNeeds(){
+  const o = {};
+  for(const t of TEAMS){ const ns=new Set(t.need); o[t.code]=new Set(); for(const n of numbers(t)){ if(!ns.has(n)) o[t.code].add(n); } }
+  return o;
+}
+function serialise(){ const out={}; for(const c in owned) out[c]=[...owned[c]].sort((a,b)=>a-b); return out; }
+function deserialise(obj){ const o={}; for(const t of TEAMS) o[t.code]=new Set(Array.isArray(obj[t.code])?obj[t.code]:[]); return o; }
+
+async function load(){
+  try{ const r=localStorage.getItem(STORAGE_KEY); if(r){ owned=deserialise(JSON.parse(r)); return; } }catch(e){}
+  owned=seedFromNeeds(); save();
+}
+function save(){
+  if(saveTimer) clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(serialise())); }catch(e){ storageOK=false; } }, 180);
+}
+function have(code){ return owned[code] ? owned[code].size : 0; }
+
+/* ---------- Overall stats ---------- */
+function renderStats(){
+  let h=0, done=0;
+  for(const t of TEAMS){ const c=have(t.code); h+=c; if(c===PER_TEAM) done++; }
+  const pct=Math.round((h/TOTAL)*100);
+  document.getElementById('ov-have').innerHTML = h + '<small> / ' + TOTAL + ' collected</small>';
+  document.getElementById('ov-bar').style.width = pct + '%';
+  document.getElementById('ov-pct').textContent = pct + '% of the album complete';
+  document.getElementById('ov-teams').innerHTML = done + '<small>/49</small>';
+  document.getElementById('ov-need').textContent = TOTAL - h;
+}
+
+/* ---------- Album view ---------- */
+function matchesFilter(t){
+  if(searchText){ const q=searchText.toLowerCase(); if(!(t.name.toLowerCase().includes(q)||t.code.toLowerCase().includes(q))) return false; }
+  if(filterMode==='need' && have(t.code)===PER_TEAM) return false;  // hide completed teams
+  return true;
+}
+function miniHTML(t,n){
+  const hasIt = owned[t.code].has(n);
+  const cls='mini'+(hasIt?' owned':'')+(hasIt&&t.foil?' foilink':'');
+  const style=hasIt?' style="background:'+t.css+'"':'';
+  return '<span class="'+cls+'"'+style+'>'+label(t,n)+'</span>';
+}
+function ncardHTML(t){
+  const c=have(t.code), done=c===PER_TEAM;
+  let cells, sum, aria;
+  if(filterMode==='need'){
+    const miss = numbers(t).filter(n=>!owned[t.code].has(n));
+    cells = miss.map(n=>'<span class="mini">'+label(t,n)+'</span>').join('');     // only the missing numbers
+    sum = '<span class="summary need">'+miss.length+'<small> needed</small></span>';
+    aria = 'Open '+t.name+', '+miss.length+' stickers still needed';
+  } else {
+    cells = numbers(t).map(n=>miniHTML(t,n)).join('');                            // full 20, collected vs needed
+    sum = done ? '<span class="badge">Done</span>' : '<span class="summary">'+c+'<small>/'+PER_TEAM+'</small></span>';
+    aria = 'Open '+t.name+', '+c+' of '+PER_TEAM+' collected';
+  }
+  return ''
+   + '<button class="ncard'+(t.foil?' foil':'')+(done&&filterMode!=='need'?' done':'')+'" data-code="'+t.code+'" aria-label="'+aria+'">'
+   +   '<span class="flag">'+t.flag+'</span>'
+   +   '<span class="ninfo"><span class="cname">'+t.name+'</span><span class="ccode">'+t.code+'</span></span>'
+   +   '<span class="nright">'+sum+'<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg></span>'
+   +   '<span class="mini-grid" aria-hidden="true">'+cells+'</span>'
+   + '</button>';
+}
+function renderAlbum(){
+  renderStats();
+  const list = TEAMS.filter(matchesFilter);
+  const root = document.getElementById('teams');
+  if(list.length){ root.innerHTML = list.map(ncardHTML).join(''); return; }
+  if(filterMode==='need' && !searchText) root.innerHTML = '<div class="empty">Nothing left to find &mdash; every sticker collected. \uD83C\uDFC6</div>';
+  else root.innerHTML = '<div class="empty">No teams match your search. Clear it to see the whole album.</div>';
+}
+
+/* ---------- Nation view ---------- */
+function slotHTML(t,n){
+  const hasIt = owned[t.code].has(n);
+  const cls='slot'+(hasIt?' owned':'')+(hasIt&&t.foil?' foilink':'');
+  const style=hasIt?' style="background:'+t.css+'"':'';
+  return '<button class="'+cls+'"'+style+' data-code="'+t.code+'" data-n="'+n+'" aria-pressed="'+hasIt+'" aria-label="'+t.name+' sticker '+label(t,n)+(hasIt?', collected. Tap to remove.':', needed. Tap to add.')+'">'+label(t,n)+'</button>';
+}
+function remainingText(t){
+  const miss = numbers(t).filter(n=>!owned[t.code].has(n)).map(n=>label(t,n));
+  if(!miss.length) return 'Complete \u2014 all 20 collected. \uD83C\uDFC6';
+  return 'Still to find (<b>'+miss.length+'</b>): ' + miss.join(', ');
+}
+function updateNationHead(t){
+  const c = have(t.code);
+  document.getElementById('n-count').innerHTML = (c===PER_TEAM ? '<span style="color:var(--green)">20</span>' : c) + '<small>/'+PER_TEAM+'</small>';
+  const bar = document.getElementById('n-bar');
+  bar.style.width = (c/PER_TEAM*100)+'%'; bar.style.background = t.css;
+  document.getElementById('n-remaining').innerHTML = remainingText(t);
+}
+function openNation(code){
+  const t = byCode[code]; currentCode = code;
+  document.getElementById('n-flag').textContent = t.flag;
+  document.getElementById('n-name').textContent = t.name;
+  document.getElementById('n-code').textContent = t.code + ' \u00B7 ' + PER_TEAM + ' stickers';
+  updateNationHead(t);
+  document.getElementById('nation-slots').innerHTML = numbers(t).map(n=>slotHTML(t,n)).join('');
+  const i=indexOfCode[code], N=TEAMS.length, prev=TEAMS[(i-1+N)%N], next=TEAMS[(i+1)%N];
+  document.getElementById('prev-f').textContent = prev.flag;
+  document.getElementById('prev-n').textContent = prev.name;
+  document.getElementById('next-f').textContent = next.flag;
+  document.getElementById('next-n').textContent = next.name;
+  document.getElementById('prev').dataset.code = prev.code;
+  document.getElementById('next').dataset.code = next.code;
+  document.getElementById('view-album').hidden = true;
+  document.getElementById('view-nation').hidden = false;
+  window.scrollTo(0,0);
+}
+function showAlbum(){
+  currentCode = null;
+  document.getElementById('view-nation').hidden = true;
+  document.getElementById('view-album').hidden = false;
+  renderAlbum();
+}
+
+/* ---------- History / routing ---------- */
+function pushNation(code){ openNation(code); history.pushState({view:'nation',code}, '', '#'+code); }
+function replaceNation(code){ openNation(code); history.replaceState({view:'nation',code}, '', '#'+code); }
+function onPop(e){
+  const s = e.state;
+  if(s && s.view==='nation' && byCode[s.code]) openNation(s.code);
+  else showAlbum();
+}
+
+/* ---------- Toggle / collect ---------- */
+function updateSummaries(code){ if(currentCode===code) updateNationHead(byCode[code]); }
+function setSlot(code,n,nowOwned,land){
+  const t = byCode[code];
+  const btn = document.querySelector('.slot[data-code="'+code+'"][data-n="'+n+'"]');
+  if(btn){
+    btn.classList.toggle('owned', nowOwned);
+    btn.classList.toggle('foilink', nowOwned && !!t.foil);
+    btn.style.background = nowOwned ? t.css : '';
+    btn.setAttribute('aria-pressed', String(nowOwned));
+    if(land && nowOwned){ btn.classList.remove('land'); void btn.offsetWidth; btn.classList.add('land'); }
+  }
+  updateSummaries(code); renderStats(); save();
+}
+function collect(code,n){ owned[code].add(n); setSlot(code,n,true,true); confetti(byCode[code].grad); }
+function remove(code,n){ owned[code].delete(n); setSlot(code,n,false,false); }
+
+/* ---------- Confirm ---------- */
+function askConfirm(code,n){
+  const t = byCode[code]; pending = {code,n};
+  const chip = document.getElementById('c-chip');
+  chip.textContent = label(t,n); chip.style.background = t.css;
+  if(t.foil){ chip.style.color='#2C1F06'; chip.style.textShadow='none'; }
+  else { chip.style.color='#fff'; chip.style.textShadow='0 1px 3px rgba(0,0,0,.55)'; }
+  document.getElementById('c-flag').textContent = t.flag;
+  document.getElementById('c-team').textContent = t.name + ' \u00B7 No. ' + label(t,n);
+  document.getElementById('confirm-scrim').classList.add('open');
+  document.getElementById('c-confirm').focus();
+}
+
+/* ---------- Needs list ---------- */
+function needsListText(){
+  const lines=[]; let total=0;
+  for(const t of TEAMS){
+    const miss = numbers(t).filter(n=>!owned[t.code].has(n)).map(n=>label(t,n));
+    if(miss.length){ lines.push(t.flag+' '+t.code+' \u2014 '+miss.join(', ')); total+=miss.length; }
+  }
+  if(!lines.length) return 'Album complete \u2014 nothing left to collect. \uD83C\uDFC6';
+  return 'World Cup 2026 \u2014 still needed ('+total+' stickers)\n\n' + lines.join('\n');
+}
+
+/* ---------- Confetti ---------- */
+const cv = document.getElementById('confetti');
+const cxx = cv.getContext('2d');
+function confetti(colors){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const dpr=window.devicePixelRatio||1, W=window.innerWidth, H=window.innerHeight;
+  cv.width=W*dpr; cv.height=H*dpr; cxx.setTransform(dpr,0,0,dpr,0,0);
+  const ox=W/2, oy=H*0.42, parts=[];
+  for(let i=0;i<110;i++){ const a=Math.random()*Math.PI*2, sp=4+Math.random()*9;
+    parts.push({x:ox,y:oy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-5,w:5+Math.random()*6,h:8+Math.random()*9,rot:Math.random()*6.28,vr:(Math.random()-.5)*.5,col:colors[i%colors.length],life:0}); }
+  const begin=performance.now();
+  function frame(t){
+    cxx.clearRect(0,0,W,H); let alive=false;
+    for(const p of parts){ p.vy+=0.2; p.vx*=0.99; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.life++;
+      const fade=Math.max(0,1-p.life/150); if(p.y<H+40&&fade>0) alive=true;
+      cxx.save(); cxx.globalAlpha=fade; cxx.translate(p.x,p.y); cxx.rotate(p.rot); cxx.fillStyle=p.col; cxx.fillRect(-p.w/2,-p.h/2,p.w,p.h); cxx.restore(); }
+    if(alive && t-begin<2800) requestAnimationFrame(frame); else cxx.clearRect(0,0,W,H);
+  }
+  requestAnimationFrame(frame);
+}
+function showToast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),1900); }
+
+/* ---------- Wire up ---------- */
+function init(){
+  document.getElementById('teams').addEventListener('click',(e)=>{ const card=e.target.closest('.ncard'); if(card) pushNation(card.dataset.code); });
+
+  document.getElementById('nation-slots').addEventListener('click',(e)=>{
+    const b=e.target.closest('.slot'); if(!b) return;
+    const code=b.dataset.code, n=parseInt(b.dataset.n,10);
+    if(owned[code].has(n)) remove(code,n); else askConfirm(code,n);
+  });
+
+  document.getElementById('back').addEventListener('click', ()=>history.back());
+  document.getElementById('prev').addEventListener('click', function(){ replaceNation(this.dataset.code); });
+  document.getElementById('next').addEventListener('click', function(){ replaceNation(this.dataset.code); });
+
+  document.getElementById('search').addEventListener('input',(e)=>{ searchText=e.target.value.trim(); renderAlbum(); });
+  const fAll=document.getElementById('f-all'), fNeed=document.getElementById('f-need'), hint=document.getElementById('hint');
+  fAll.addEventListener('click',()=>{ filterMode='all'; fAll.setAttribute('aria-pressed','true'); fNeed.setAttribute('aria-pressed','false'); hint.textContent='Tap a nation to open its page and add stickers.'; renderAlbum(); });
+  fNeed.addEventListener('click',()=>{ filterMode='need'; fNeed.setAttribute('aria-pressed','true'); fAll.setAttribute('aria-pressed','false'); hint.textContent='Showing only the stickers you still need. Completed teams are hidden.'; renderAlbum(); });
+
+  const cScrim=document.getElementById('confirm-scrim');
+  function closeConfirm(){ cScrim.classList.remove('open'); pending=null; }
+  document.getElementById('c-cancel').addEventListener('click', closeConfirm);
+  cScrim.addEventListener('click',(e)=>{ if(e.target===cScrim) closeConfirm(); });
+  document.getElementById('c-confirm').addEventListener('click',()=>{ if(pending){ const p=pending; closeConfirm(); collect(p.code,p.n); } });
+
+  const nScrim=document.getElementById('needs-scrim');
+  document.getElementById('open-needs').addEventListener('click',()=>{ document.getElementById('needs-text').value=needsListText(); nScrim.classList.add('open'); });
+  document.getElementById('needs-close').addEventListener('click',()=>nScrim.classList.remove('open'));
+  nScrim.addEventListener('click',(e)=>{ if(e.target===nScrim) nScrim.classList.remove('open'); });
+  document.getElementById('needs-copy').addEventListener('click', async ()=>{
+    const txt=document.getElementById('needs-text'); txt.select();
+    try{ await navigator.clipboard.writeText(txt.value); showToast('Needs list copied'); }
+    catch(e){ try{ document.execCommand('copy'); showToast('Needs list copied'); }catch(_){ showToast('Select the text and copy'); } }
+  });
+
+  document.getElementById('reset').addEventListener('click',()=>{
+    if(confirm('Reset to your starting list? This marks the stickers you first listed as still needed, and everything else as collected.')){
+      owned=seedFromNeeds(); save(); if(currentCode) updateNationHead(byCode[currentCode]); else renderAlbum(); showToast('Reset to your starting list');
+    }
+  });
+
+  document.addEventListener('keydown',(e)=>{
+    if(e.key==='Escape'){
+      if(cScrim.classList.contains('open')){ closeConfirm(); return; }
+      if(nScrim.classList.contains('open')){ nScrim.classList.remove('open'); return; }
+      if(currentCode) history.back();
+      return;
+    }
+    if(e.key==='Enter' && cScrim.classList.contains('open') && pending){ const p=pending; closeConfirm(); collect(p.code,p.n); }
+  });
+
+  window.addEventListener('popstate', onPop);
+
+  // Initial route: base = album, optional deep-link via #CODE
+  history.replaceState({view:'album'}, '', location.pathname + location.search);
+  const hash = (location.hash || '').replace('#','').toUpperCase();
+  if(byCode[hash]){ showAlbum(); pushNation(hash); }
+  else showAlbum();
+
+  if(!storageOK) showToast('Heads up: progress can\u2019t be saved here');
+}
+
+load().then(init);
+</script>
+</body>
+</html>
