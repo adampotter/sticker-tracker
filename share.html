@@ -49,6 +49,8 @@ body{
 .seg button{appearance:none;border:0;background:transparent;color:var(--muted);font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:13px;padding:9px 16px;border-radius:8px;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--panel-2);color:var(--text);box-shadow:inset 0 0 0 1px var(--slot-line)}
 .tabview[hidden]{display:none}
+.orderbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 16px}
+.orderlab{font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:13px;color:var(--muted)}
 
 /* team rows */
 .teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
@@ -187,7 +189,35 @@ function ownedSets(data){
   return o;
 }
 
+let OWNED = null;
+let sortMode = 'default'; // 'default' | 'asc' | 'desc'
+
+function teamTileHTML(t){
+  const c=OWNED[t.code].size, p=Math.round((c/PER_TEAM)*100), isDone=c===PER_TEAM;
+  const miss = numbers(t).filter(n=>!OWNED[t.code].has(n)).map(n=>label(t,n));
+  let h='<div class="trow'+(isDone?' done':'')+'">';
+  h+='<span class="flag">'+t.flag+'</span>';
+  h+='<span class="tinfo"><span class="tname">'+t.name+'</span><span class="tbar"><i style="width:'+p+'%;background:'+t.css+'"></i></span></span>';
+  h+='<span class="tpct'+(isDone?' done':'')+'">'+p+'<small>%</small></span>';
+  if(isDone) h+='<div class="tneeds done">Complete — all 20 collected. 🏆</div>';
+  else h+='<div class="tneeds">Needs (<b>'+miss.length+'</b>): '+miss.join(', ')+'</div>';
+  h+='</div>';
+  return h;
+}
+
+function renderTeams(){
+  let list = TEAMS.slice();
+  if(sortMode!=='default'){
+    list.sort((a,b)=>{
+      const na=PER_TEAM-OWNED[a.code].size, nb=PER_TEAM-OWNED[b.code].size;
+      return sortMode==='asc' ? na-nb : nb-na;
+    });
+  }
+  document.getElementById('teams-grid').innerHTML = list.map(teamTileHTML).join('');
+}
+
 function render(owned){
+  OWNED = owned;
   let h=0, done=0;
   for(const t of TEAMS){ const c=owned[t.code].size; h+=c; if(c===PER_TEAM) done++; }
   const pct=Math.round((h/TOTAL)*100);
@@ -208,19 +238,11 @@ function render(owned){
 
   // ----- Tab 1: progress by team (with needed stickers per nation) -----
   html += '<div class="tabview" id="view-teams">';
-  html += '<div class="teams">';
-  for(const t of TEAMS){
-    const c=owned[t.code].size, p=Math.round((c/PER_TEAM)*100), isDone=c===PER_TEAM;
-    const miss = numbers(t).filter(n=>!owned[t.code].has(n)).map(n=>label(t,n));
-    html += '<div class="trow'+(isDone?' done':'')+'">';
-    html +=   '<span class="flag">'+t.flag+'</span>';
-    html +=   '<span class="tinfo"><span class="tname">'+t.name+'</span><span class="tbar"><i style="width:'+p+'%;background:'+t.css+'"></i></span></span>';
-    html +=   '<span class="tpct'+(isDone?' done':'')+'">'+p+'<small>%</small></span>';
-    if(isDone) html += '<div class="tneeds done">Complete — all 20 collected. 🏆</div>';
-    else html += '<div class="tneeds">Needs (<b>'+miss.length+'</b>): '+miss.join(', ')+'</div>';
-    html += '</div>';
-  }
-  html += '</div>';
+  html += '<div class="orderbar"><span class="orderlab">Order by needs</span><div class="seg" role="group" aria-label="Order by needs">';
+  html +=   '<button id="ord-asc" aria-pressed="false">Fewest first</button>';
+  html +=   '<button id="ord-desc" aria-pressed="false">Most first</button>';
+  html += '</div></div>';
+  html += '<div class="teams" id="teams-grid"></div>';
   html += '</div>';
 
   // ----- Tab 2: still needed list -----
@@ -243,6 +265,20 @@ function render(owned){
   html += '</div>';
 
   document.getElementById('content').innerHTML = html;
+
+  // populate the team grid (respects current sort)
+  renderTeams();
+
+  // ordering buttons — click the active one again to reset to default
+  const ordAsc=document.getElementById('ord-asc'), ordDesc=document.getElementById('ord-desc');
+  function setOrder(mode){
+    sortMode = (sortMode===mode) ? 'default' : mode;
+    ordAsc.setAttribute('aria-pressed', String(sortMode==='asc'));
+    ordDesc.setAttribute('aria-pressed', String(sortMode==='desc'));
+    renderTeams();
+  }
+  ordAsc.addEventListener('click',()=>setOrder('asc'));
+  ordDesc.addEventListener('click',()=>setOrder('desc'));
 
   // tab switching
   const tabTeams=document.getElementById('tab-teams'), tabNeeds=document.getElementById('tab-needs');
