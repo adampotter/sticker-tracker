@@ -202,6 +202,10 @@ body{
         <button id="f-all" aria-pressed="true">All teams</button>
         <button id="f-need" aria-pressed="false">Still need</button>
       </div>
+      <div class="seg" role="group" aria-label="Order by needs">
+        <button id="ord-asc" aria-pressed="false">Fewest needs</button>
+        <button id="ord-desc" aria-pressed="false">Most needs</button>
+      </div>
       <button class="btn" id="open-needs">Needs list</button>
       <button class="btn ghost" id="reset">Reset</button>
     </div>
@@ -343,6 +347,7 @@ function label(t,n){ return t.code==='FWC' ? String(n).padStart(2,'0') : String(
 
 let owned = {};
 let filterMode = 'all';
+let orderMode = 'default'; // 'default' | 'asc' | 'desc'
 let searchText = '';
 let saveTimer = null;
 let storageOK = true;
@@ -441,6 +446,12 @@ function ncardHTML(t){
 function renderAlbum(){
   renderStats();
   const list = TEAMS.filter(matchesFilter);
+  if(orderMode!=='default'){
+    list.sort((a,b)=>{
+      const na=PER_TEAM-have(a.code), nb=PER_TEAM-have(b.code);
+      return orderMode==='asc' ? na-nb : nb-na;
+    });
+  }
   const root = document.getElementById('teams');
   if(list.length){ root.innerHTML = list.map(ncardHTML).join(''); return; }
   if(filterMode==='need' && !searchText) root.innerHTML = '<div class="empty">Nothing left to find &mdash; every sticker collected. 🏆</div>';
@@ -612,6 +623,16 @@ function init(){
   const fAll=document.getElementById('f-all'), fNeed=document.getElementById('f-need'), hint=document.getElementById('hint');
   fAll.addEventListener('click',()=>{ filterMode='all'; fAll.setAttribute('aria-pressed','true'); fNeed.setAttribute('aria-pressed','false'); hint.textContent='Tap a nation to open its page and add stickers.'; renderAlbum(); });
   fNeed.addEventListener('click',()=>{ filterMode='need'; fNeed.setAttribute('aria-pressed','true'); fAll.setAttribute('aria-pressed','false'); hint.textContent='Showing only the stickers you still need. Completed teams are hidden.'; renderAlbum(); });
+
+  const ordAsc=document.getElementById('ord-asc'), ordDesc=document.getElementById('ord-desc');
+  function setOrder(mode){
+    orderMode = (orderMode===mode) ? 'default' : mode;
+    ordAsc.setAttribute('aria-pressed', String(orderMode==='asc'));
+    ordDesc.setAttribute('aria-pressed', String(orderMode==='desc'));
+    renderAlbum();
+  }
+  ordAsc.addEventListener('click',()=>setOrder('asc'));
+  ordDesc.addEventListener('click',()=>setOrder('desc'));
 
   const cScrim=document.getElementById('confirm-scrim');
   function closeConfirm(){ cScrim.classList.remove('open'); pending=null; }
