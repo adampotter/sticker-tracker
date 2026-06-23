@@ -384,6 +384,19 @@ async function saveToFirestore(){
   }catch(e){}
 }
 
+/* ---------- Lightweight, anonymous usage analytics ----------
+   Stores simple counts in analytics/summary. No personal data —
+   just tallies so we can later see how the app is used. */
+function track(field, teamCode){
+  if(!db) return;
+  try{
+    const upd = { updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+    upd[field] = firebase.firestore.FieldValue.increment(1);
+    if(teamCode) upd.teamViews = { [teamCode]: firebase.firestore.FieldValue.increment(1) };
+    db.collection('analytics').doc('summary').set(upd, {merge: true});
+  }catch(e){}
+}
+
 async function load(){
   try{
     const fsData = await loadFromFirestore();
@@ -483,6 +496,7 @@ function updateNationHead(t){
 }
 function openNation(code){
   const t = byCode[code]; currentCode = code;
+  track('nationOpens', code);
   document.getElementById('n-flag').textContent = t.flag;
   document.getElementById('n-name').textContent = t.name;
   document.getElementById('n-code').textContent = t.code + ' · ' + PER_TEAM + ' stickers';
@@ -527,8 +541,8 @@ function setSlot(code,n,nowOwned,land){
   }
   updateSummaries(code); renderStats(); save();
 }
-function collect(code,n){ owned[code].add(n); setSlot(code,n,true,true); confetti(byCode[code].grad); }
-function remove(code,n){ owned[code].delete(n); setSlot(code,n,false,false); }
+function collect(code,n){ owned[code].add(n); setSlot(code,n,true,true); confetti(byCode[code].grad); track('stickerAdds'); }
+function remove(code,n){ owned[code].delete(n); setSlot(code,n,false,false); track('stickerRemoves'); }
 
 function askConfirm(code,n){
   const t = byCode[code]; pending = {code,n};
@@ -646,7 +660,7 @@ function init(){
   document.getElementById('c-confirm').addEventListener('click',()=>{ if(pending){ const p=pending; closeConfirm(); collect(p.code,p.n); } });
 
   const nScrim=document.getElementById('needs-scrim');
-  document.getElementById('open-needs').addEventListener('click',()=>{ document.getElementById('needs-text').value=needsListText(); nScrim.classList.add('open'); });
+  document.getElementById('open-needs').addEventListener('click',()=>{ document.getElementById('needs-text').value=needsListText(); nScrim.classList.add('open'); track('needsListOpens'); });
   document.getElementById('needs-close').addEventListener('click',()=>nScrim.classList.remove('open'));
   nScrim.addEventListener('click',(e)=>{ if(e.target===nScrim) nScrim.classList.remove('open'); });
   document.getElementById('needs-copy').addEventListener('click', async ()=>{
@@ -657,7 +671,7 @@ function init(){
 
   document.getElementById('reset').addEventListener('click',()=>{
     if(confirm('Reset to your starting list? This marks the stickers you first listed as still needed, and everything else as collected.')){
-      owned=seedFromNeeds(); save(); if(currentCode) updateNationHead(byCode[currentCode]); else renderAlbum(); showToast('Reset to your starting list');
+      owned=seedFromNeeds(); save(); if(currentCode) updateNationHead(byCode[currentCode]); else renderAlbum(); showToast('Reset to your starting list'); track('resets');
     }
   });
 
@@ -685,6 +699,7 @@ async function start(){
   try{ await setupSync(); }catch(e){ storageOK = true; }
   await load();
   init();
+  track('appOpens');
 }
 start();
 </script>

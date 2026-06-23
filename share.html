@@ -307,6 +307,12 @@ async function start(){
     }
     render(ownedSets(snap.data().owned));
     document.getElementById('owner').textContent = 'Code: ' + code;
+    try{
+      db.collection('analytics').doc('summary').set({
+        shareViews: firebase.firestore.FieldValue.increment(1),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, {merge: true});
+    }catch(e){}
   }catch(e){
     content.innerHTML = '<div class="state">Couldn’t load the collection. Please try again later.</div>';
   }
