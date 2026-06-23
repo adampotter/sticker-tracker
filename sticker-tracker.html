@@ -271,8 +271,8 @@ body{
 <canvas id="confetti"></canvas>
 <div class="toast" id="toast"></div>
 
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 
 <script>
 const PER_TEAM = 20;
@@ -362,9 +362,8 @@ function deserialise(obj){ const o={}; for(const t of TEAMS) o[t.code]=new Set(A
 async function loadFromFirestore(){
   if(!syncCode || !db) return null;
   try{
-    const docRef = firebase.firestore.doc(db, 'collections', syncCode);
-    const snap = await firebase.firestore.getDoc(docRef);
-    if(snap.exists()){ return snap.data().owned; }
+    const snap = await db.collection('collections').doc(syncCode).get();
+    if(snap.exists){ return snap.data().owned; }
   }catch(e){}
   return null;
 }
@@ -372,8 +371,7 @@ async function loadFromFirestore(){
 async function saveToFirestore(){
   if(!syncCode || !db) return;
   try{
-    const docRef = firebase.firestore.doc(db, 'collections', syncCode);
-    await firebase.firestore.setDoc(docRef, {owned: serialise()}, {merge: true});
+    await db.collection('collections').doc(syncCode).set({owned: serialise()}, {merge: true});
   }catch(e){}
 }
 
@@ -569,8 +567,8 @@ async function setupSync(){
     messagingSenderId: "833558967042",
     appId: "1:833558967042:web:2685531ddb510ef081c81b"
   };
-  const app = firebase.initializeApp(firebaseConfig);
-  db = firebase.firestore(app);
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
 
   if(!syncCode){
     const scrim = document.getElementById('sync-code-scrim');
@@ -657,7 +655,12 @@ function init(){
   if(!storageOK) showToast('Heads up: progress can’t be saved here');
 }
 
-setupSync().then(() => load().then(init));
+async function start(){
+  try{ await setupSync(); }catch(e){ storageOK = true; }
+  await load();
+  init();
+}
+start();
 </script>
 </body>
 </html>
