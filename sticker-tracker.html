@@ -84,6 +84,10 @@ body{
 .badge{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);border:1px solid rgba(57,198,140,.4);border-radius:999px;padding:3px 9px}
 .chev{color:var(--muted-2);flex:none}
 
+/* per-nation progress bar on the card */
+.ncardbar{grid-column:1 / -1;height:8px;border-radius:999px;background:#0c1421;border:1px solid var(--slot-line);overflow:hidden;margin-top:4px}
+.ncardbar > i{display:block;height:100%;border-radius:999px;transition:width .4s ease}
+
 /* mini sticker grid on the card (display only) */
 .mini-grid{grid-column:1 / -1;display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-top:3px}
 .mini{position:relative;aspect-ratio:1/1;border-radius:5px;display:flex;align-items:center;justify-content:center;
@@ -440,6 +444,7 @@ function ncardHTML(t){
    +   '<span class="flag">'+t.flag+'</span>'
    +   '<span class="ninfo"><span class="cname">'+t.name+'</span><span class="ccode">'+t.code+'</span></span>'
    +   '<span class="nright">'+sum+'<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg></span>'
+   +   '<span class="ncardbar" aria-hidden="true"><i style="width:'+Math.round(c/PER_TEAM*100)+'%;background:'+t.css+'"></i></span>'
    +   '<span class="mini-grid" aria-hidden="true">'+cells+'</span>'
    + '</button>';
 }
