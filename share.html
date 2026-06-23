@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>World Cup 2026 Sticker Album — Shared View</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --ink:#0E1524; --ink-2:#0A111E; --panel:#172033; --panel-2:#1E2940;
+  --line:#2A3550; --slot:#101a2c; --slot-line:#33405e;
+  --gold-1:#F7DD93; --gold-2:#C9972F; --gold-ink:#2C1F06;
+  --green:#39C68C; --text:#EEF1F7; --muted:#8A95AC; --muted-2:#5E6A83;
+  --danger:#E5704B; --radius:16px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:
+    radial-gradient(1200px 600px at 50% -200px, #1a2740 0%, rgba(26,39,64,0) 60%),
+    linear-gradient(180deg, var(--ink) 0%, var(--ink-2) 100%);
+  background-attachment:fixed; color:var(--text);
+  font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased; min-height:100vh;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 96px}
+
+.eyebrow{font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.28em;text-transform:uppercase;font-size:12px;color:var(--gold-1);opacity:.9;margin:0 0 6px}
+.title{font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:clamp(34px,6vw,58px);line-height:.95;letter-spacing:.01em;margin:0;text-transform:uppercase}
+.title em{font-style:normal;color:var(--gold-1)}
+.sub{color:var(--muted);margin:8px 0 0;font-size:15px}
+
+.scoreboard{margin-top:24px;background:linear-gradient(180deg,var(--panel) 0%,#131b2c 100%);border:1px solid var(--line);border-radius:var(--radius);padding:22px 22px 20px;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:18px}
+.stat .big{font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:clamp(30px,5vw,46px);line-height:1}
+.stat .big small{font-size:.5em;color:var(--muted);font-weight:600}
+.stat .lab{color:var(--muted);font-size:13px;margin-top:4px;letter-spacing:.02em}
+.stat.accent .big{color:var(--gold-1)}
+.stat.green .big{color:var(--green)}
+.bar{height:10px;border-radius:999px;background:#0c1421;border:1px solid var(--slot-line);overflow:hidden;margin-top:14px}
+.bar > i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--gold-2),var(--gold-1));box-shadow:0 0 12px rgba(247,221,147,.45);transition:width .4s ease}
+.scoreboard .stat:first-child{grid-column:1 / -1}
+
+.section-title{font-family:'Saira Condensed',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.03em;font-size:22px;margin:34px 0 14px}
+
+/* team rows */
+.teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.trow{
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:11px 12px;
+  background:linear-gradient(180deg,var(--panel) 0%,#141d2e 100%);
+  border:1px solid var(--line);border-radius:14px;padding:13px 15px;
+}
+.trow.done{border-color:rgba(57,198,140,.4)}
+.trow .flag{font-size:24px;line-height:1;width:30px;text-align:center}
+.trow .tinfo{min-width:0}
+.tname{font-family:'Saira Condensed',sans-serif;font-weight:700;font-size:17px;line-height:1.05;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tbar{height:8px;border-radius:999px;background:#0c1421;border:1px solid var(--slot-line);overflow:hidden;margin-top:7px}
+.tbar > i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--gold-2),var(--gold-1));transition:width .4s ease}
+.tpct{font-family:'Saira Condensed',sans-serif;font-weight:800;font-size:16px;text-align:right;min-width:54px}
+.tpct small{color:var(--muted);font-weight:600;font-size:.62em}
+.tpct.done{color:var(--green)}
+
+/* needs */
+.needs{background:linear-gradient(180deg,var(--panel) 0%,#131b2c 100%);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px}
+.needrow{padding:9px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:1.5}
+.needrow:last-child{border-bottom:0}
+.needrow .nf{font-size:17px;margin-right:7px}
+.needrow b{font-family:'Saira Condensed',sans-serif;font-weight:700;letter-spacing:.04em}
+.needrow .nums{color:var(--muted)}
+
+.state{text-align:center;color:var(--muted);padding:80px 20px;font-size:16px}
+.state.big{font-size:18px}
+
+.footer{margin-top:40px;text-align:center;color:var(--muted-2);font-size:13px}
+.footer a{color:var(--gold-1)}
+
+@media (max-width:560px){
+  .scoreboard{grid-template-columns:1fr 1fr}
+  .scoreboard .stat:first-child{grid-column:1 / -1}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Panini &middot; World Cup 2026</p>
+    <h1 class="title">Sticker <em>Album</em> &mdash; Shared</h1>
+    <p class="sub" id="sub">A read-only view of this collection.</p>
+  </header>
+
+  <div id="content">
+    <div class="state big">Loading collection…</div>
+  </div>
+
+  <div class="footer">Live view &middot; updates automatically &middot; <span id="owner"></span></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+<script>
+const PER_TEAM = 20;
+
+const TEAMS = [
+  {code:'FWC', name:'FIFA World Cup', flag:'⭐️', start:0, need:[6,9,10,13,17]},
+  {code:'MEX', name:'Mexico', flag:'🇲🇽', need:[2,3,4,7,10,12,13,16]},
+  {code:'RSA', name:'South Africa', flag:'🇿🇦', need:[3,11,16,17]},
+  {code:'KOR', name:'South Korea', flag:'🇰🇷', need:[11,15,18,20]},
+  {code:'CZE', name:'Czechia', flag:'🇨🇿', need:[5,9,11,12,15,20]},
+  {code:'CAN', name:'Canada', flag:'🇨🇦', need:[6,10,12,13,15,18]},
+  {code:'BIH', name:'Bosnia & Herzegovina', flag:'🇧🇦', need:[3,5,7,9,10,12,16,18]},
+  {code:'QAT', name:'Qatar', flag:'🇶🇦', need:[5,11]},
+  {code:'SUI', name:'Switzerland', flag:'🇨🇭', need:[2,4,10,15,16,19]},
+  {code:'BRA', name:'Brazil', flag:'🇧🇷', need:[1,4,9,11,13,18]},
+  {code:'MAR', name:'Morocco', flag:'🇲🇦', need:[5,6,9,10,11,13,14,18]},
+  {code:'HAI', name:'Haiti', flag:'🇭🇹', need:[2,3,4,7,8,10,12,14,15,16,19]},
+  {code:'SCO', name:'Scotland', flag:'🏴󠁧󠁢󠁳󠁣󠁴󠁿', need:[2,5,9,14,18]},
+  {code:'USA', name:'United States', flag:'🇺🇸', need:[4,8,9,15,18]},
+  {code:'PAR', name:'Paraguay', flag:'🇵🇾', need:[8,13,14,19,20]},
+  {code:'AUS', name:'Australia', flag:'🇦🇺', need:[2,8,10,11,14,19]},
+  {code:'TUR', name:'Türkiye', flag:'🇹🇷', need:[3,5,8,9,10]},
+  {code:'GER', name:'Germany', flag:'🇩🇪', need:[1,5,7,8,9,10,11,12,13,18,19]},
+  {code:'CUW', name:'Curaçao', flag:'🇨🇼', need:[1,12,13,19]},
+  {code:'CIV', name:"Côte d'Ivoire", flag:'🇨🇮', need:[2,10,13,17,20]},
+  {code:'ECU', name:'Ecuador', flag:'🇪🇨', need:[3,8,10,11]},
+  {code:'NED', name:'Netherlands', flag:'🇳🇱', need:[10,11,19]},
+  {code:'JPN', name:'Japan', flag:'🇯🇵', need:[1,4,12,15,18,19,20]},
+  {code:'SWE', name:'Sweden', flag:'🇸🇪', need:[2,3,8,19]},
+  {code:'TUN', name:'Tunisia', flag:'🇹🇳', need:[2,3,5,7,10,17,19,20]},
+  {code:'BEL', name:'Belgium', flag:'🇧🇪', need:[3,14,15,18]},
+  {code:'EGY', name:'Egypt', flag:'🇪🇬', need:[1,2,5,6,7,12,13,14,16,17,20]},
+  {code:'IRN', name:'Iran', flag:'🇮🇷', need:[2,5,8,12,13,15]},
+  {code:'NZL', name:'New Zealand', flag:'🇳🇿', need:[3,8,9,19,20]},
+  {code:'ESP', name:'Spain', flag:'🇪🇸', need:[3,4,6,8,10,13,15,16,17]},
+  {code:'CPV', name:'Cape Verde', flag:'🇨🇻', need:[2,18,19,20]},
+  {code:'KSA', name:'Saudi Arabia', flag:'🇸🇦', need:[4,5,11,17]},
+  {code:'URU', name:'Uruguay', flag:'🇺🇾', need:[3,9,10,13,20]},
+  {code:'FRA', name:'France', flag:'🇫🇷', need:[5,6,8,12,14,15,16,17]},
+  {code:'SEN', name:'Senegal', flag:'🇸🇳', need:[3,6,12,15,16]},
+  {code:'IRQ', name:'Iraq', flag:'🇮🇶', need:[5,8,9,11,12,15,16,17,19]},
+  {code:'NOR', name:'Norway', flag:'🇳🇴', need:[4,5,6,11,18,20]},
+  {code:'ARG', name:'Argentina', flag:'🇦🇷', need:[4,5,6,8]},
+  {code:'ALG', name:'Algeria', flag:'🇩🇿', need:[1,7,9,12,14]},
+  {code:'AUT', name:'Austria', flag:'🇦🇹', need:[6,8,17,18,19,20]},
+  {code:'JOR', name:'Jordan', flag:'🇯🇴', need:[1,3,4,5,8,9,15,17,18]},
+  {code:'POR', name:'Portugal', flag:'🇵🇹', need:[3,4,12]},
+  {code:'COD', name:'DR Congo', flag:'🇨🇩', need:[4,7,8,9,11,12,13,15]},
+  {code:'UZB', name:'Uzbekistan', flag:'🇺🇿', need:[1,3,7,13,14,16,17,19]},
+  {code:'COL', name:'Colombia', flag:'🇨🇴', need:[2,4,5,7,14,17]},
+  {code:'ENG', name:'England', flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', need:[3,5,7,12,15,19]},
+  {code:'CRO', name:'Croatia', flag:'🇭🇷', need:[2,5,7,11,16,17,18,20]},
+  {code:'GHA', name:'Ghana', flag:'🇬🇭', need:[5,9,10,13,14]},
+  {code:'PAN', name:'Panama', flag:'🇵🇦', need:[2,3,11,20]},
+];
+
+const TOTAL = TEAMS.length * PER_TEAM;
+TEAMS.forEach(t=>{ if(typeof t.start !== 'number') t.start = 1; });
+
+function numbers(t){ const a=[]; for(let i=0;i<PER_TEAM;i++) a.push(t.start+i); return a; }
+function label(t,n){ return t.code==='FWC' ? String(n).padStart(2,'0') : String(n); }
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCbv2kYZgOkiMKCXl8dHqVekEeY88R0XMo",
+  authDomain: "sticker-tracker-9cae1.firebaseapp.com",
+  projectId: "sticker-tracker-9cae1",
+  storageBucket: "sticker-tracker-9cae1.firebasestorage.app",
+  messagingSenderId: "833558967042",
+  appId: "1:833558967042:web:2685531ddb510ef081c81b"
+};
+
+function ownedSets(data){
+  const o = {};
+  for(const t of TEAMS) o[t.code] = new Set(Array.isArray(data && data[t.code]) ? data[t.code] : []);
+  return o;
+}
+
+function render(owned){
+  let h=0, done=0;
+  for(const t of TEAMS){ const c=owned[t.code].size; h+=c; if(c===PER_TEAM) done++; }
+  const pct=Math.round((h/TOTAL)*100);
+
+  let html = '';
+  html += '<section class="scoreboard">';
+  html +=   '<div class="stat accent"><div class="big">'+h+'<small> / '+TOTAL+' collected</small></div>';
+  html +=     '<div class="bar"><i style="width:'+pct+'%"></i></div>';
+  html +=     '<div class="lab">'+pct+'% of the album complete</div></div>';
+  html +=   '<div class="stat green"><div class="big">'+done+'<small>/49</small></div><div class="lab">teams complete</div></div>';
+  html +=   '<div class="stat"><div class="big">'+(TOTAL-h)+'</div><div class="lab">stickers still needed</div></div>';
+  html += '</section>';
+
+  html += '<h2 class="section-title">Progress by team</h2>';
+  html += '<div class="teams">';
+  for(const t of TEAMS){
+    const c=owned[t.code].size, p=Math.round((c/PER_TEAM)*100), isDone=c===PER_TEAM;
+    html += '<div class="trow'+(isDone?' done':'')+'">';
+    html +=   '<span class="flag">'+t.flag+'</span>';
+    html +=   '<span class="tinfo"><span class="tname">'+t.name+'</span><span class="tbar"><i style="width:'+p+'%"></i></span></span>';
+    html +=   '<span class="tpct'+(isDone?' done':'')+'">'+p+'<small>%</small></span>';
+    html += '</div>';
+  }
+  html += '</div>';
+
+  const needLines=[]; let needTotal=0;
+  for(const t of TEAMS){
+    const miss = numbers(t).filter(n=>!owned[t.code].has(n)).map(n=>label(t,n));
+    if(miss.length){ needLines.push({t, miss}); needTotal+=miss.length; }
+  }
+  html += '<h2 class="section-title">Still needed ('+needTotal+')</h2>';
+  if(!needLines.length){
+    html += '<div class="needs"><div class="needrow">Album complete — nothing left to collect. 🏆</div></div>';
+  } else {
+    html += '<div class="needs">';
+    for(const {t, miss} of needLines){
+      html += '<div class="needrow"><span class="nf">'+t.flag+'</span><b>'+t.name+'</b> &mdash; <span class="nums">'+miss.join(', ')+'</span></div>';
+    }
+    html += '</div>';
+  }
+
+  document.getElementById('content').innerHTML = html;
+}
+
+async function start(){
+  const params = new URLSearchParams(location.search);
+  const code = (params.get('code') || '').trim();
+  const content = document.getElementById('content');
+
+  if(!code){
+    content.innerHTML = '<div class="state">No collection code in the link. Ask for a link that ends with <b>?code=…</b></div>';
+    return;
+  }
+
+  try{
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const snap = await db.collection('collections').doc(code).get();
+    if(!snap.exists){
+      content.innerHTML = '<div class="state">No collection found for that code yet.</div>';
+      return;
+    }
+    render(ownedSets(snap.data().owned));
+    document.getElementById('owner').textContent = 'Code: ' + code;
+  }catch(e){
+    content.innerHTML = '<div class="state">Couldn’t load the collection. Please try again later.</div>';
+  }
+}
+
+start();
+</script>
+</body>
+</html>
