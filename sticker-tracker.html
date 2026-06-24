@@ -168,6 +168,11 @@ body{
 @media (max-width:560px){
   .scoreboard{grid-template-columns:1fr 1fr}
   .scoreboard .stat:first-child{grid-column:1 / -1}
+  .controls{gap:8px}
+  .controls .search{flex:1 1 100%}
+  .controls .seg{display:flex;width:100%}
+  .controls .seg button{flex:1;text-align:center;padding:9px 6px}
+  .controls #open-needs,.controls #reset{flex:1 1 0}
 }
 @media (prefers-reduced-motion:reduce){
   .slot.owned::after{animation:none;display:none}
